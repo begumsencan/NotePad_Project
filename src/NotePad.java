@@ -86,6 +86,7 @@ public class NotePad extends JFrame implements ActionListener {
                 this.text.setText(lines2);
                 setTitle(filePath);
                 br.close();
+
             }
             catch(Exception ex){
                 System.out.println(ex.getMessage());
