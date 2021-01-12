@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;//Action listener
 import java.io.*;
 
-
 public class NotePad extends JFrame implements ActionListener {
     //main method
     public static void main(String[] args) {
@@ -27,7 +26,6 @@ public class NotePad extends JFrame implements ActionListener {
 
     //constructor
     public NotePad(){
-
         //set title
         super("My NotePad Project");
         setVisible(true);
@@ -59,33 +57,35 @@ public class NotePad extends JFrame implements ActionListener {
         this.File.add(this.Exit);
         this.Exit.addActionListener(this::actionPerformed);
     }
-
     //Methods
     public void NewFile(){
         text.setText("");
         filePath=null;
-
     }
     public void OpenFile(){
-        JFileChooser openFile = new JFileChooser("f:");
+        JFileChooser openFile = new JFileChooser();
         //user clicked the open
         if(openFile.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
 
             //address of the file
-            filePath =openFile.getSelectedFile().getAbsolutePath();
+            filePath =openFile.getSelectedFile().getPath();
 
             try{
                 //reads text from file
                 //and we need to know content and address of the file
-                BufferedReader br = new BufferedReader(new FileReader(filePath));
-                this.text.setText("");
-                String lines;
-                //reads all lines in the selected file
-                while ((lines=br.readLine()) != null) {
-                    //set text with lines
-                    text.setText(lines+"/n");
+                BufferedReader  br = new BufferedReader(new FileReader(filePath));
+                //string variables for lines
+                String lines ;
+                String lines2=br.readLine();
+                //read lines from the file
+                while((lines=br.readLine()) !=null){
+                    //update lines2 add lines
+                    lines2= lines2+"\n"+lines;
                 }
+                //set the text lines2
+                this.text.setText(lines2);
                 setTitle(filePath);
+                br.close();
             }
             catch(Exception ex){
                 System.out.println(ex.getMessage());
@@ -99,13 +99,14 @@ public class NotePad extends JFrame implements ActionListener {
         // showSaveDialog function shows us the save dialog in file chooser
         // user clicked save option
         if(saveAsFile.showSaveDialog(null)==JFileChooser.APPROVE_OPTION){
+            filePath =saveAsFile.getSelectedFile().getPath();
             try{
 
                 // there is a BufferedWriter for write to a file
                 // gets the text which is written in text area an write
-                BufferedWriter bw = new BufferedWriter(new FileWriter(saveAsFile.getSelectedFile().getAbsolutePath()));
+                BufferedWriter bw = new BufferedWriter(new FileWriter(filePath));
                 bw.write(text.getText());
-
+                setTitle(filePath);
                 //all texts from buffer is written to intended destination,
                 //flush the content of the buffer
                 bw.flush();
@@ -156,7 +157,6 @@ public class NotePad extends JFrame implements ActionListener {
         }
         else if(e.getSource()==this.SaveAs){
             SaveAs();
-
         }
         else if(e.getSource()==this.Save){
             Save();
