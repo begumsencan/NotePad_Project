@@ -11,6 +11,8 @@ public class NotePad extends JFrame implements ActionListener {
     }
     //our text area
     JTextArea text = new JTextArea();
+    //Horizontal and vertical scrollbar
+    JScrollPane scrollable = new JScrollPane(text,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     //this is for menu bar creation
     JMenuBar bar = new JMenuBar();
     //this is where you can find text operations for your notes
@@ -34,9 +36,12 @@ public class NotePad extends JFrame implements ActionListener {
         // close operation
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(this.text);//
+        //getContentPane().add(this.text);
+
+        this.add(scrollable);
         // font, its size and its features
         this.text.setFont(new Font("Comic Sans MS",Font.PLAIN,15));
+
         //adds bar to our notepad window
         setJMenuBar(this.bar);
         //adds File section to bar
