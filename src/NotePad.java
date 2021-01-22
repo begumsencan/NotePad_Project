@@ -66,6 +66,7 @@ public class NotePad extends JFrame implements ActionListener {
     public void NewFile(){
         text.setText("");
         filePath=null;
+        setTitle(filePath);
     }
     public void OpenFile(){
         JFileChooser openFile = new JFileChooser();
@@ -104,21 +105,36 @@ public class NotePad extends JFrame implements ActionListener {
         JFileChooser saveAsFile = new JFileChooser("f:");
         // showSaveDialog function shows us the save dialog in file chooser
         // user clicked save option
+
         if(saveAsFile.showSaveDialog(null)==JFileChooser.APPROVE_OPTION){
+            File f = new File(saveAsFile.getSelectedFile().getPath());
             filePath =saveAsFile.getSelectedFile().getPath();
             try{
+                //if it is the same file
+                if(f.exists()){
+                    int choice=  JOptionPane.showConfirmDialog(null,"are you sure to replace it with the existing file?");
+                    if(choice==JOptionPane.YES_OPTION){
+                        Save();
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null,"not saved");
+                        return;
+                    }
+                }
+                else{
+                    // there is a BufferedWriter for write to a file
+                    // gets the text which is written in text area an write
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(f,false));
+                    bw.write(text.getText());
+                    setTitle(filePath);
+                    //all texts from buffer is written to intended destination,
+                    // flush the content of the buffer
+                    bw.flush();
+                    //close stream
+                    bw.close();
 
-                // there is a BufferedWriter for write to a file
-                // gets the text which is written in text area an write
-                BufferedWriter bw = new BufferedWriter(new FileWriter(filePath));
-                bw.write(text.getText());
-                setTitle(filePath);
-                //all texts from buffer is written to intended destination,
-                //flush the content of the buffer
-                bw.flush();
-                //close stream
-                bw.close();
-                JOptionPane.showMessageDialog(null,"Saved!");
+                    JOptionPane.showMessageDialog(null,"Saved!");
+                }
             }
             catch(Exception ex){
                 System.out.println(ex.getMessage());
