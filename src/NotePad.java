@@ -1,7 +1,11 @@
 import javax.swing.*;//JFrame
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;//Action listener
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 
 public class NotePad extends JFrame implements ActionListener {
@@ -25,12 +29,14 @@ public class NotePad extends JFrame implements ActionListener {
     JMenuItem Exit = new JMenuItem("Exit"); //terminate the program
 
     String filePath;
+    private State s;
 
     //constructor
     public NotePad(){
         //set title
         super("My NotePad Project");
         setVisible(true);
+        this.s = new State(null, false);
         //set size of a window
         setSize(500,500);
         // close operation
@@ -61,14 +67,29 @@ public class NotePad extends JFrame implements ActionListener {
 
         this.File.add(this.Exit);
         this.Exit.addActionListener(this::actionPerformed);
+        this.text.getDocument().addDocumentListener(new NotePad.MyDocumentListener());
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent) {
+                if (NotePad.this.s.getIsChanged()) {
+                    int confirm = JOptionPane.showConfirmDialog(null, "Do you want to save file?");
+                    if (confirm == 0) {
+                        NotePad.this.SaveAs();
+                    } else if (confirm == 1) {
+                        System.exit(0);
+                    }
+                }
+
+            }
+        });
     }
     //Methods
     public void NewFile(){
-        text.setText("");
-        filePath=null;
-        setTitle(filePath);
+        new NotePad();
     }
     public void OpenFile(){
+        if (this.s.getIsChanged()) {
+            this.SaveAs();
+        }
         JFileChooser openFile = new JFileChooser();
         //user clicked the open
         if(openFile.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
@@ -92,6 +113,8 @@ public class NotePad extends JFrame implements ActionListener {
                 this.text.setText(lines2);
                 setTitle(filePath);
                 br.close();
+                this.s.setIsChanged(false);
+                this.s.setPath(this.filePath);
 
             }
             catch(Exception ex){
@@ -108,7 +131,7 @@ public class NotePad extends JFrame implements ActionListener {
 
         if(saveAsFile.showSaveDialog(null)==JFileChooser.APPROVE_OPTION){
             File f = new File(saveAsFile.getSelectedFile().getPath());
-            filePath =saveAsFile.getSelectedFile().getPath();
+            this.s.setPath(saveAsFile.getSelectedFile().getPath());
             try{
                 //if it is the same file
                 if(f.exists()){
@@ -118,7 +141,7 @@ public class NotePad extends JFrame implements ActionListener {
                     }
                     else{
                         JOptionPane.showMessageDialog(null,"not saved");
-                        return;
+
                     }
                 }
                 else{
@@ -127,11 +150,13 @@ public class NotePad extends JFrame implements ActionListener {
                     BufferedWriter bw = new BufferedWriter(new FileWriter(f,false));
                     bw.write(text.getText());
                     setTitle(filePath);
-                    //all texts from buffer is written to intended destination,
+                    //all texts from buffer is written to  intended destination,
                     // flush the content of the buffer
                     bw.flush();
                     //close stream
                     bw.close();
+                    this.setTitle(this.s.getPath());
+                    this.s.setIsChanged(false);
 
                     JOptionPane.showMessageDialog(null,"Saved!");
                 }
@@ -144,16 +169,16 @@ public class NotePad extends JFrame implements ActionListener {
     }
     public void Save(){
         //if the file didn't saved before call method saveAs()
-        if(filePath==null){
-            SaveAs();
+        if (this.s.getPath() == null) {
+            this.SaveAs();
         }
         //if it is an existing file and saving it after maked changes
-        else{
+        else if (this.s.getIsChanged()){
             try{
                 //write to file
                 FileWriter fw = new FileWriter(filePath);
                 fw.write(text.getText());
-                setTitle(filePath);
+                this.setTitle(this.filePath);
                 fw.close();
                 JOptionPane.showMessageDialog(null,"Saved!");
             }
@@ -164,11 +189,11 @@ public class NotePad extends JFrame implements ActionListener {
     }
     public void Exit(){
         int confirm=JOptionPane.showConfirmDialog(null,"Do you want to save file?");
-        if(confirm==JOptionPane.YES_OPTION)
+        if (this.s.getIsChanged()){if(confirm==JOptionPane.YES_OPTION)
             SaveAs();
         else if(confirm==JOptionPane.NO_OPTION)
             System.exit(0);
-    }
+    }}
 
     public void actionPerformed (ActionEvent e){
         if(e.getSource()==this.New){
@@ -187,4 +212,19 @@ public class NotePad extends JFrame implements ActionListener {
             Exit();
         }
     }
-}
+    public class MyDocumentListener implements DocumentListener {
+        public MyDocumentListener() {
+        }
+
+        public void insertUpdate(DocumentEvent e) {
+            NotePad.this.s.setIsChanged(true);
+        }
+
+        public void removeUpdate(DocumentEvent e) {
+            NotePad.this.s.setIsChanged(true);
+        }
+
+        public void changedUpdate(DocumentEvent e) {
+            NotePad.this.s.setIsChanged(true);
+        }
+    }}
